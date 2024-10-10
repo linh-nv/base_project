@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
-use App\Services\User\UserServiceInterface;
+use App\Models\User;
+use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
     protected $userService;
 
-    public function __construct(UserServiceInterface $userService)
+    public function __construct(UserService $userService)
     {
         $this->userService = $userService;
     }
@@ -34,7 +34,12 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(UserRequest $request): JsonResponse
+    public function create() {}
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(UserRequest $request): JsonResponse
     {
         try {
             $user = $this->userService->create($request->all());
@@ -47,19 +52,18 @@ class UserController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user): JsonResponse
     {
-        //
+        try {
+            $user = $this->userService->find($user);
+
+            return response()->json(data: $user, status: Response::HTTP_OK);
+        } catch (\Throwable $th) {
+
+            return response()->json(data: "Error: " . $th->getMessage(), status: Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -73,8 +77,27 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UserRequest $request, User $user): JsonResponse
     {
-        //
+        try {
+            $user = $this->userService->update($user, $request->all());
+
+            return response()->json(data: $user, status: Response::HTTP_OK);
+        } catch (\Throwable $th) {
+
+            return response()->json(data: "Error: " . $th->getMessage(), status: Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public function destroy(User $user): JsonResponse
+    {
+        try {
+            $user = $this->userService->delete($user);
+
+            return response()->json(data: $user, status: Response::HTTP_OK);
+        } catch (\Throwable $th) {
+
+            return response()->json(data: "Error: " . $th->getMessage(), status: Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }
